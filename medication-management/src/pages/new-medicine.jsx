@@ -1,9 +1,9 @@
 function NewMedicine() {
     return (
         <>
-
+        <p>cadastro remédio</p>
         </>
     )
 }
 
-export default NewMedicine
+export { NewMedicine }

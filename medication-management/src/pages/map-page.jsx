@@ -1,9 +1,9 @@
 function Map() {
     return (
         <>
-
+        <p>mapa</p>
         </>
     )
 }
 
-export default Map
+export { Map }

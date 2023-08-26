@@ -1,9 +1,9 @@
 function MedicineList() {
     return (
         <>
-
+        <p>lista remédio</p>
         </>
     )
 }
 
-export default MedicineList
+export { MedicineList }
