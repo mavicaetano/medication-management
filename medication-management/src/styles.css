@@ -1,0 +1,9 @@
+.menu-container {
+    min-height: 100vh;
+    background-color: #343a40;
+}
+
+.content-container {
+    flex-grow: 1;
+    padding: 20px;
+}
