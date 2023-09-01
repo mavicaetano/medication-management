@@ -29,7 +29,7 @@ function Login() {
             }
 
             if (Object.keys(newErrors).length === 0) {
-                navigate('/map');
+                navigate('/home');
             }
         }
 
