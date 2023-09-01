@@ -33,7 +33,7 @@ Nessa página é realizado o cadastro das farmácias, com os seguintes campos a 
 - E-mail (obrigatório)
 - Telefone (opcional)
 - Celular (obrigatório)
-- Endereço
+- Endereço (obrigatório)
 - CEP (obrigatório)
 - Logradouro/Endereço (obrigatório)
 - Número (obrigatório)
