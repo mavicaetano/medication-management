@@ -41,3 +41,4 @@ Nessa página é realizado o cadastro das farmácias, com os seguintes campos a 
 - Cidade (obrigatório)
 - Estado (obrigatório)
 - Complemento (opcional)
+Após preencher os campos, o usuário deverá marcar no mapa a localização da farmácia, informando, assim, sua latitude e longitude.
