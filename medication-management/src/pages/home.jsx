@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import {Menu} from "../../components/menu.jsx";
+import {Menu} from "../components/menu.jsx";
 
 function Map() {
     const pharmacies = JSON.parse(localStorage.getItem('pharmacies')) || [];

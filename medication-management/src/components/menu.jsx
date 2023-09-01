@@ -7,12 +7,12 @@ function Menu() {
             description: "Mapa",
         },
         {
-            route: "/medicine-list",
-            description: "Lista de medicamentos",
-        },
-        {
             route: "/new-medicine",
             description: "Cadastrar medicamento",
+        },
+        {
+            route: "/medicine-list",
+            description: "Lista de medicamentos",
         },
         {
             route: "/new-pharmacy",

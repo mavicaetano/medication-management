@@ -69,7 +69,6 @@ function Login() {
                 </form>
             </div>
         </div>
-    )
-}
+    )}
 
 export { Login }

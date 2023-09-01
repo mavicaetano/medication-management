@@ -4,6 +4,7 @@ import { Menu } from "../components/menu";
 
 function NewMedicine() {
     const [medicineData, setMedicineData] = useState({
+        id: null,
         nomeMedicamento: '',
         nomeLaboratorio: '',
         dosagem: '',
@@ -17,16 +18,25 @@ function NewMedicine() {
         setMedicineData({ ...medicineData, [name]: value });
     };
 
+    const getNextId = () => {
+        const storedMedicines = JSON.parse(localStorage.getItem('medicines')) || [];
+        const maxId = storedMedicines.length > 0 ? Math.max(...storedMedicines.map(med => med.id)) : 0;
+        return maxId + 1;
+    };
+
+
     const handleFormSubmit = (event) => {
         event.preventDefault();
 
         try {
             const medicines = JSON.parse(localStorage.getItem('medicines')) || [];
-            medicines.push(medicineData);
+            const newMedicine = { ...medicineData, id: getNextId() };
+            medicines.push(newMedicine);
             localStorage.setItem('medicines', JSON.stringify(medicines));
 
             alert('Medicamento cadastrado com sucesso!');
             setMedicineData({
+                id: null,
                 nomeMedicamento: '',
                 nomeLaboratorio: '',
                 dosagem: '',
@@ -78,7 +88,6 @@ function NewMedicine() {
                 </form>
             </div>
         </div>
-    );
-}
+    )}
 
-export { NewMedicine };
+export { NewMedicine }

@@ -1,11 +1,14 @@
 import { Menu } from "../components/menu"
 
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import {useRef, useState} from 'react';
+import {MapContainer, TileLayer, FeatureGroup} from 'react-leaflet';
+import { EditControl } from "react-leaflet-draw";
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 function NewPharmacy() {
     const [formData, setFormData] = useState({
+        id: null,
         razaoSocial: '',
         cnpj: '',
         nomeFantasia: '',
@@ -23,24 +26,42 @@ function NewPharmacy() {
         longitude: 0,
     });
 
+    const [markerPosition, setMarkerPosition] = useState([formData.latitude, formData.longitude]);
+    const [enderecoDisabled, setEnderecoDisabled] = useState(true);
+    const [bairroDisabled, setBairroDisabled] = useState(true);
+
     function handleInputChange(event) {
         const { name, value } = event.target;
         setFormData({ ...formData, [name]: value });
     }
 
-    function handleMapClick(e) {
-        setFormData({
-            ...formData,
-            latitude: e.latlng.lat,
-            longitude: e.latlng.lng,
-        });
+    function handleMarkersCreated(e) {
+        const marker = e.layer;
+        if (markerGroupRef.current) {
+            markerGroupRef.current.clearLayers();
+            markerGroupRef.current.addLayer(marker);
+            setFormData({
+                ...formData,
+                latitude: marker.getLatLng().lat,
+                longitude: marker.getLatLng().lng,
+            });
+            setMarkerPosition([marker.getLatLng().lat, marker.getLatLng().lng]);
+        }
+    }
+
+    const markerGroupRef = useRef();
+
+    function getNextId() {
+        const storedPharmacies = JSON.parse(localStorage.getItem('pharmacies')) || [];
+        const maxId = storedPharmacies.length > 0 ? Math.max(...storedPharmacies.map(pharmacy => pharmacy.id)) : 0;
+        return maxId + 1;
     }
 
     function handleFormSubmit(event) {
         event.preventDefault();
 
         const requiredFields = ['razaoSocial', 'cnpj', 'nomeFantasia', 'email', 'celular', 'cep', 'endereco', 'numero', 'bairro', 'cidade', 'estado', 'latitude', 'longitude'];
-
+        console.log(formData)
         const missingFields = requiredFields.filter(field => !formData[field]);
         if (missingFields.length > 0) {
             alert(`Os campos ${missingFields.join(', ')} são obrigatórios.`);
@@ -48,11 +69,13 @@ function NewPharmacy() {
         }
 
         const pharmacies = JSON.parse(localStorage.getItem('pharmacies')) || [];
-        pharmacies.push(formData);
+        const newPharmacy = { ...formData, id: getNextId() };
+        pharmacies.push(newPharmacy);
         localStorage.setItem('pharmacies', JSON.stringify(pharmacies));
 
         alert('Farmácia cadastrada com sucesso!');
         setFormData({
+            id: null,
             razaoSocial: '',
             cnpj: '',
             nomeFantasia: '',
@@ -69,6 +92,35 @@ function NewPharmacy() {
             latitude: 0,
             longitude: 0,
         });
+        setMarkerPosition([0, 0]);
+    }
+
+    async function handleCepSearch() {
+        if (!formData.cep || formData.cep.length !== 8) {
+            alert('Digite um CEP válido com 8 números.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${formData.cep}/json/`);
+            if (response.ok) {
+                const data = await response.json();
+                setFormData({
+                    ...formData,
+                    endereco: data.logradouro,
+                    bairro: data.bairro,
+                    cidade: data.localidade,
+                    estado: data.uf,
+                });
+
+                setEnderecoDisabled(data.logradouro !== '');
+                setBairroDisabled(data.logradouro !== '');
+            } else {
+                alert('CEP não encontrado.');
+            }
+        } catch (error) {
+            alert('Erro ao consultar CEP.');
+        }
     }
 
     return (
@@ -104,49 +156,72 @@ function NewPharmacy() {
                             <label htmlFor="celular" className="form-label">Celular *</label>
                             <input type="text" className="form-control" id="celular" name="celular" onChange={handleInputChange} />
                         </div>
-                        <div className="mb-3">
-                            <label htmlFor="cep" className="form-label">CEP *</label>
-                            <input type="text" className="form-control" id="cep" name="cep" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="endereco" className="form-label">Logradouro/Endereço *</label>
-                            <input type="text" className="form-control" id="endereco" name="endereco" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="numero" className="form-label">Número *</label>
-                            <input type="text" className="form-control" id="numero" name="numero" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="bairro" className="form-label">Bairro *</label>
-                            <input type="text" className="form-control" id="bairro" name="bairro" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="cidade" className="form-label">Cidade *</label>
-                            <input type="text" className="form-control" id="cidade" name="cidade" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="estado" className="form-label">Estado *</label>
-                            <input type="text" className="form-control" id="estado" name="estado" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="complemento" className="form-label">Complemento</label>
-                            <input type="text" className="form-control" id="complemento" name="complemento" onChange={handleInputChange} />
-                        </div>
-                        <div className="mb-3">
-                            <h4>Geolocalização</h4>
-                            <MapContainer center={[formData.latitude, formData.longitude]} zoom={13} style={{ height: '300px' }} onClick={handleMapClick}>
-                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                <Marker position={[formData.latitude, formData.longitude]}>
-                                    <Popup>Localização da Farmácia</Popup>
-                                </Marker>
-                            </MapContainer>
-                        </div>
+                        <fieldset>
+                            <legend>Endereço</legend>
+                            <div className="mb-3">
+                                <label htmlFor="cep" className="form-label">CEP *</label>
+                                <div className="d-flex">
+                                    <input type="number" className="form-control me-2" id="cep" name="cep" value={formData.cep} onChange={handleInputChange} />
+                                    <button type="button" className="btn btn-secondary" onClick={handleCepSearch}>Consultar</button>
+                                </div>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="estado" className="form-label">Estado *</label>
+                                <input type="text" className="form-control" id="estado" name="estado" disabled={true} value={formData.estado} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="cidade" className="form-label">Cidade *</label>
+                                <input type="text" className="form-control" id="cidade" name="cidade" disabled={true} value={formData.cidade} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="bairro" className="form-label">Bairro *</label>
+                                <input type="text" className="form-control" id="bairro" name="bairro" disabled={bairroDisabled} onChange={handleInputChange} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="endereco" className="form-label">Rua *</label>
+                                <input type="text" className="form-control" id="endereco" name="endereco" disabled={enderecoDisabled} onChange={handleInputChange} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="numero" className="form-label">Número *</label>
+                                <input type="text" className="form-control" id="numero" name="numero" onChange={handleInputChange} />
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="complemento" className="form-label">Complemento</label>
+                                <input type="text" className="form-control" id="complemento" name="complemento" onChange={handleInputChange} />
+                            </div>
+
+                            <div className="mb-3">
+                                <h4>Selecione a localização no mapa</h4>
+                                <MapContainer center={markerPosition} zoom={13} style={{ height: '300px' }}>
+                                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                    <FeatureGroup ref={markerGroupRef}>
+                                        <EditControl
+                                            position="topright"
+                                            draw={{
+                                                polyline: false,
+                                                polygon: false,
+                                                rectangle: false,
+                                                circle: false,
+                                                circlemarker: false,
+                                                marker: true,
+                                            }}
+                                            onCreated={handleMarkersCreated}
+                                        />
+                                    </FeatureGroup>
+                                </MapContainer>
+                            </div>
+                        </fieldset>
                         <button type="submit" className="btn btn-primary">Salvar</button>
                     </form>
                 </div>
             </div>
         </div>
-    );
-}
+    )}
 
 export {NewPharmacy};
