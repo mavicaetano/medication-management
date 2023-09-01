@@ -25,7 +25,7 @@ Nessa página é realizado o cadastro das medicações, com os seguintes campos 
 ### Lista de medicamentos:
 Aqui é mostrado todos os medicamentos cadastrados pelo usuário. É possível fazer a busca pelo nome do medicamento, laboratório, tipo (comum ou controlado) ou preço.
 
-###Cadastrar farmácia:
+### Cadastrar farmácia:
 Nessa página é realizado o cadastro das farmácias, com os seguintes campos a serem preenchidos:
 - Razão social (obrigatório)
 - CNPJ (obrigatório)
